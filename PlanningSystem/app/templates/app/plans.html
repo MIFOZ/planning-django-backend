@@ -1,0 +1,32 @@
+{% extends "app/layout.html" %}
+
+{% block content %}
+
+<table class="table">
+    <tr>
+        <th>No.</th>
+		<th>Title</th>
+        <th>Type</th>
+        <th>Project</th>
+        <th>Status</th>
+        <th>Created by</th>
+        <th>Department</th>
+    </tr>
+    {% for plan in user_plans %}
+    <tr> 
+        <td>{{ forloop.counter }}</td>
+        <td>{{ plan.title }}</td>
+        <td>{{ plan.work_type }}</td>
+        <td>{% firstof plan.project '' %}</td>
+        <td>{{ plan.status }}</td>
+        <td>{{ plan.created_by }}</td>
+        <td>{{ plan.created_by.branch }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% if True %}
+<a href="{% url 'create_plans' employee.id %}"><button type="button" class="btn btn-default">Add new plan</button></a>
+{% endif %}
+
+{% endblock %}
