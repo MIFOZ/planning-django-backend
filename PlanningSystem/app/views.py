@@ -1,9 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.views.generic import CreateView
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponseRedirect
 from django.template import RequestContext
 from datetime import datetime
-from django.views import generic
+from django.urls import reverse
 
 from .models import Project, Plan, Task
 
@@ -12,9 +13,6 @@ def projects(request):
     assert isinstance(request, HttpRequest)
 
     employee = request.user.employee
-    employees_in_projects = Project.objects.filter(
-
-    )
     user_projects = Project.objects.filter(
         Q(manager=employee) |
         Q(exec=employee) |
@@ -37,8 +35,9 @@ def plans(request):
 
     employee = request.user.employee
     user_plans = Plan.objects.filter(
-        created_by=employee
-    )
+        Q(created_by=employee) |
+        Q(project__manager=employee) |
+        Q(project__exec=employee))
 
     return render(
         request,
@@ -52,8 +51,37 @@ def plans(request):
         }
     )
 
-def create_plan(reqeust):
-    return HttpResponseRedirect(reverse('plans'))
+def create_plan(request):
+    if (request.method == "POST"):
+        return HttpResponseRedirect(reverse('plans'))
+    else:
+        return HttpResponseRedirect(reverse('plans'))
+
+def edit_plan(request):
+    if (request.method != "POST"):
+        return HttpResponseRedirect(reverse('plans'))
+
+    plan = get_object_or_404(Plan, pk=request.POST['plan'])
+    employee = request.user.employee
+
+    return render(
+        request,
+        'app/edit_plan.html',
+        {
+            'title':'Plans',
+            'plan': plan.objects.create(
+                plan=plan
+            )
+            'employee': employee
+        }
+    )
+
+def create_task(request):
+    if (request.method != "POST"):
+        return HttpResponseRedirect(reverse('plans'))
+
+    plan = get_object_or_404(Plan, pk=request.POST['plan'])
+    task = Task.create
 
 def about(request):
     """Renders the about page."""

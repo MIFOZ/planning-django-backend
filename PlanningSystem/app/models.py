@@ -1,6 +1,10 @@
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from django.contrib.auth.models import User
 from model_utils.models import TimeStampedModel
+from django.utils import timezone
+
 
 class Post(models.Model):
     title = models.CharField(max_length=100)
@@ -31,7 +35,7 @@ class StructureUnit(TimeStampedModel):
         (0, 'Department'),
         (1, 'Section'),
         (2, 'Team')
-        )
+    )
 
     name = models.CharField(max_length=100)
     shortened_name = models.CharField(max_length=10)
@@ -61,30 +65,29 @@ class Project(TimeStampedModel):
     closure_act_number = models.CharField(max_length=20, null=True, blank=True)
     closure_act_date = models.DateField('closure act date', null=True, blank=True)
     completion_date = models.DateField('completion date', null=True, blank=True)
-    business_process = models.ForeignKey(BusinessProcess)
+    plan = models.OneToOneField('Plan', blank=True)
 
     def __str__(self):
         return f'{self.code}. {self.title}';
 
 class Plan(TimeStampedModel):
-    FOR_ORDER = 0
-    FOR_PROJECT = 1
-    FOR_BUSINESS_PROCESS = 2
-    FOR_MINUTES_OF_THE_MITING = 3
-    ARBITRARY = 4
+    WORK_TYPE_FOR_ORDER = 0
+    WORK_TYPE_FOR_PROJECT = 1
+    WORK_TYPE_FOR_BUSINESS_PROCESS = 2
+    WORK_TYPE_FOR_MINUTES_OF_THE_MITING = 3
+    WORK_TYPE_ARBITRARY = 4
     WORK_TYPES = (
-        (FOR_ORDER,    'For order'),
-        (FOR_PROJECT,    'For project'),
-        (FOR_BUSINESS_PROCESS,    'For business process'),
-        (FOR_MINUTES_OF_THE_MITING,    'For minutes of the meeting'),
-        (ARBITRARY,    'Arbitrary')
+        (WORK_TYPE_FOR_ORDER,    'For order'),
+        (WORK_TYPE_FOR_PROJECT,    'For project'),
+        (WORK_TYPE_FOR_BUSINESS_PROCESS,    'For business process'),
+        (WORK_TYPE_FOR_MINUTES_OF_THE_MITING,    'For minutes of the meeting'),
+        (WORK_TYPE_ARBITRARY,    'Arbitrary')
         )
 
     work_type = models.PositiveSmallIntegerField(choices=WORK_TYPES)
     business_process = models.ForeignKey(BusinessProcess)
-    project = models.OneToOneField(Project, null=True)
     title = models.CharField(max_length=100)
-    created_by = models.ForeignKey(Employee)
+    created_by = models.ForeignKey(Employee, null=True, blank=True)
 
     STATUS_PREPARED = 0
     STATUS_ON_AGREEMENT = 1
@@ -96,8 +99,20 @@ class Plan(TimeStampedModel):
     )
     status = models.PositiveSmallIntegerField(choices=STATUSES)
 
-    commentary = models.CharField(max_length=100)
+    commentary = models.CharField(max_length=100, null=True, blank=True)
     creation_date = models.DateTimeField('Creation data')
+
+@receiver(pre_save, sender=Project)
+def create_plan_to_new_project(sender, instance, **kwargs):
+    """Create Plan for every new Project."""
+    if instance._state.adding is True:
+        plan = Plan.objects.create(
+            work_type=Plan.WORK_TYPE_FOR_PROJECT,
+            business_process=instance.business_process,
+            title=f'Plan for project {instance.code}',
+            status=Plan.STATUS_PREPARED,
+            creation_date=timezone.now())
+        instance.plan = plan
 
 class Task(TimeStampedModel):
     text = models.CharField(max_length=50)
@@ -121,7 +136,7 @@ class Task(TimeStampedModel):
         (STATUS_STOPPED, 'Stopped'),
         (STATUS_IN_PROGRESS, 'In progress'),
         (STATUS_FINISHED, 'Finished')
-        )
+    )
     status = models.PositiveSmallIntegerField(choices=STATUSES)
 
     completeness = models.PositiveSmallIntegerField()

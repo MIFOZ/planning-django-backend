@@ -28,7 +28,7 @@
         <td>{% firstof project.closure_act_number '' %}</td>
         <td>{% firstof project.closure_act_date '' %}</td>
         <td>{% firstof project.completion_date '' %}</td>
-        <td>{{ project.business_process }}</td>
+        <td>{{ project.plan.business_process }}</td>
     </tr>
     {% endfor %}
 </table>

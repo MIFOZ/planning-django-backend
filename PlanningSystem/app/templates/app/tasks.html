@@ -1,0 +1,10 @@
+﻿<table>
+    <tr>
+        <th>No.</th>
+    </tr>
+{% for task in plan.task_set.all %}
+    <tr>
+        <td>{{ forloop.counter }}</td>
+    </tr>
+{% endfor %}
+</table>

@@ -1,0 +1,24 @@
+﻿{% extends "app/layout.html" %}
+
+{% block content %}
+
+<div>
+    <div class="plan-header">
+        <div class="plan-header-line">
+            <label>Бизнес-процесс:</label>
+            <label>{{ plan.business_process }}</label>
+        </div>
+    </div>
+
+    <form>
+        <input type="hidden" name="plan" value="{{ plan.id }}" />
+        <input type="submit" value="Add task" />
+    </form>
+
+    {% include 'app/tasks.html' %}
+    <p class="commentary">
+        Комментарий: {{ plan.commentary }}
+    </p>
+</div>
+
+{% endblock %}

@@ -19,7 +19,9 @@ urlpatterns = [
     # Examples:
     url(r'^$', app.views.projects, name='projects'),
     url(r'^plans', app.views.plans, name='plans'),
-    url(r'create_plan', app.views.create_plan, name='create_plan'),
+    url(r'create_plan$', app.views.create_plan, name='create_plan'),
+    url(r'edit_plan$', app.views.edit_plan, name='edit_plan'),
+    url(r'create_task', app.views.create_task, name='create_task'),
     url(r'^about', app.views.about, name='about'),
     url(r'^admin/', admin.site.urls),
     url(r'^login/$',
